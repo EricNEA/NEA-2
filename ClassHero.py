@@ -2,7 +2,7 @@ import pygame
 from Config import *
 from ClassSpriteSheet import SpriteSheet
 
-#SpriteSheet Animation frames
+
 runSprites = [
     (24, 16, 40, 52),
     (104, 16, 40, 52),
@@ -14,7 +14,6 @@ runSprites = [
     (584, 16, 40, 52)
 ]
 
-#SpriteSheet Animation frames
 idleSprites = [
     (12, 12, 44, 52),
     (76, 12, 44, 52),
@@ -22,7 +21,6 @@ idleSprites = [
     (204, 12, 44, 52)
 ]
 
-#SpriteSheet Animation frames
 attackSprites = [
     (4, 0, 92, 80),
     (100, 0, 92, 80),
@@ -40,9 +38,9 @@ class Hero():
     def __init__(self, position, faceRight):
 
         # Load spritesheets
-        idleSpriteSheet = SpriteSheet(SPRITESHEET_PATH + "//Assets//SpriteSheets//Character//Idle//Idle-Sheet.png", idleSprites)
-        runSpriteSheet = SpriteSheet(SPRITESHEET_PATH + "//Assets//SpriteSheets//Character//Run//Run-Sheet.png", runSprites)
-        attackSpriteSheet = SpriteSheet(SPRITESHEET_PATH + "//Assets//SpriteSheets//Character//Attack-01//Attack-01-Sheet.png", attackSprites)
+        idleSpriteSheet = SpriteSheet(SPRITESHEET_PATH + "Character//Idle//Idle-Sheet.png", idleSprites)
+        runSpriteSheet = SpriteSheet(SPRITESHEET_PATH + "Character//Run//Run-Sheet.png", runSprites)
+        attackSpriteSheet = SpriteSheet(SPRITESHEET_PATH + "Character//Attack-01//Attack-01-Sheet.png", attackSprites)
 
         self.spriteSheets = {
             'IDLE'   : idleSpriteSheet,
@@ -63,16 +61,16 @@ class Hero():
         self.previousState = self.currentState
         self.xDir = 0
 
-        #Get State
+        # get key status
         if self.currentState != 'ATTACK':
             keys = pygame.key.get_pressed()
             if keys[pygame.K_SPACE]:
                 self.currentState = 'ATTACK'
-            elif keys[pygame.K_LEFT]:
+            elif keys[pygame.K_d]:
                 self.xDir = -1
                 self.facingRight = False
                 self.currentState = 'RUN'
-            elif keys[pygame.K_RIGHT]:
+            elif keys[pygame.K_a]:
                 self.xDir = 1
                 self.facingRight = True
                 self.currentState = 'RUN'
@@ -109,25 +107,4 @@ class Hero():
 
     def draw(self, displaySurface):
         displaySurface.blit(self.image, self.rect)
-
-
-    def selectAnimation(self):
-        self.animationSpeed = ANIMSPEED_HERO_DEFAULT
-        if self.currentState == 'IDLE':
-            self.animationSpeed = ANIMSPEED_HERO_IDLE
-
-        spriteSheet = self.spriteSheets[self.currentState]
-        self.currentAnimation = spriteSheet.getSprites(flipped = not self.facingRight)
-
-
-    def moveHorizontal(self, level):
-        self.rect.centerx += self.xDir * self.speed
-
-        # Do not walk outside level
-        if self.rect.left < 0:
-            self.rect.left = 0
-        elif self.rect.right > SCREEN_WIDTH:
-            self.rect.right = SCREEN_WIDTH
-
-        self.xPos = self.rect.centerx
 
