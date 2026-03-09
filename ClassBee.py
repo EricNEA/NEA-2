@@ -3,106 +3,132 @@ from Config import *
 from ClassSpriteSheet import SpriteSheet
 
 
-beeSprites = [
-    (16, 0, 48, 48),
-    (80, 0, 48, 48),
-    (144, 0, 48, 48),
-    (208, 0, 48, 48)
+runSprites = [
+    (24, 16, 40, 52),
+    (104, 16, 40, 52),
+    (184, 16, 40, 52),
+    (264, 16, 40, 52),
+    (344, 16, 40, 52),
+    (424, 16, 40, 52),
+    (504, 16, 40, 52),
+    (584, 16, 40, 52)
+]
+
+idleSprites = [
+    (12, 12, 44, 52),
+    (76, 12, 44, 52),
+    (140, 12, 44, 52),
+    (204, 12, 44, 52)
+]
+
+attackSprites = [
+    (4, 0, 92, 80),
+    (100, 0, 92, 80),
+    (196, 0, 92, 80),
+    (294, 0, 92, 80),
+    (388, 0, 92, 80),
+    (484, 0, 92, 80),
+    (580, 0, 92, 80),
+    (676, 0, 92, 80)
 ]
 
 
-class Bee(pygame.sprite.Sprite):
-    
-    def __init__(self, position, moveRight):
+class Hero(pygame.sprite.Sprite):
+
+    def __init__(self, position, faceRight):
         super().__init__()
         
         # Load spritesheets
-        self.flySpriteSheet = SpriteSheet(SPRITESHEET_PATH + "Mob//Small bee//Fly//Fly-Sheet.png", beeSprites)
-        self.attackSpriteSheet = SpriteSheet(SPRITESHEET_PATH + "Mob//Small bee//Attack//Attack-Sheet.png", beeSprites)
-        
-        self.image = self.flySpriteSheet.getSprites(moveRight)[0]
-        self.rect = self.image.get_rect(bottomleft = position)
-        self.movingRight = moveRight
+        idleSpriteSheet = SpriteSheet(SPRITESHEET_PATH + "Character//Idle//Idle-Sheet.png", idleSprites)
+        runSpriteSheet = SpriteSheet(SPRITESHEET_PATH + "Character//Run//Run-Sheet.png", runSprites)
+        attackSpriteSheet = SpriteSheet(SPRITESHEET_PATH + "Character//Attack-01//Attack-01-Sheet.png", attackSprites)
+
+        self.spriteSheets = {
+            'IDLE'   : idleSpriteSheet,
+            'RUN'    : runSpriteSheet,
+            'ATTACK' : attackSpriteSheet
+        }
+
         self.animationIndex = 0
-        self.currentState = 'FLY'
+        self.facingRight = faceRight
+        self.currentState = 'IDLE'
+        self.xDir = 0
+        self.speed = SPEED_HERO
+        self.xPos = position[0]
+        self.yPos = position[1]
 
-        self.flyRight = self.flySpriteSheet.getSprites(True)
-        self.flyLeft = self.flySpriteSheet.getSprites(False)
-
-        self.attackRight = self.attackSpriteSheet.getSprites(True)
-        self.attackLeft = self.attackSpriteSheet.getSprites(False)
-        self.currentAnimation = self.flyRight if moveRight else self.flyLeft
-        self.animationSpeed = ANIMSPEED_BEE
 
     def update(self, level):
-        # Update position
-        if self.movingRight == False:
-            self.rect.x -= SPEED_BEE
-        else:
-            self.rect.x += SPEED_BEE
+        self.previousState = self.currentState
+        self.xDir = 0
 
-        # When the bee gets out of the window turn the sprites around 
-        if self.rect.right < 0:
-            self.movingRight = True
-        if self.rect.left > SCREEN_WIDTH:
-            self.movingRight = False
-
-        #Start/trigger attack
-        heroRect = level.hero.sprite.rect
-        heroX = heroRect.centerx
-        if self.currentState == 'FLY':
-            if heroRect.top < self.rect.bottom <= heroRect.bottom:
-                if self.movingRight == True:
-                    if self.rect.left < heroX and self.rect.right > heroX - 50:
-                        self.currentState = 'ATTACK'
-                        self.animationIndex = 0
-                else:
-                    if self.rect.right <= heroX or self.rect.left > heroX + 50:
-                        self.currentState = 'ATTACK'
-                        self.animationIndex = 0
-        elif self.currentState == 'ATTACK':
-            if self.movingRight == True:
-                if self.rect.left >= heroX or self.rect.right < heroX - 50:
-                    self.currentState = 'FLY'
-                    self.animationIndex = 0
+        # get key status
+        if self.currentState != 'ATTACK':
+            keys = pygame.key.get_pressed()
+            if keys[pygame.K_SPACE]:
+                self.currentState = 'ATTACK'
+            elif keys[pygame.K_a]:
+                self.xDir = -1
+                self.facingRight = False
+                self.currentState = 'RUN'
+            elif keys[pygame.K_d]:
+                self.xDir = 1
+                self.facingRight = True
+                self.currentState = 'RUN'
             else:
-                if self.rect.right <= heroX or self.rect.left > heroX + 50:
-                    self.currentState = 'FLY'
-                    self.animationIndex = 0
-                    
-        # Select animation for current action
+                self.currentState = 'IDLE'
+
+        # Select animation for current player action (idle, run, jump, fall, etc.)
         self.selectAnimation()
-            
-        # Animate sprite
-        self.animationIndex += self.animationSpeed
-        if self.animationIndex >= len(self.currentAnimation):
-            if self.currentState == 'ATTACK':
-                self.animationIndex = len(self.currentAnimation) - 1
-            else:
-                self.currentState = 'FLY'
-                self.animationIndex = 0
 
-                
+        # Start from beginning of a new animation
+        if self.previousState != self.currentState:
+            self.animationIndex = 0
+
+        # Select the image
         self.image = self.currentAnimation[int(self.animationIndex)]
 
-#    def selectAnimation(self):
-#        self.animationSpeed = ANIMSPEED_BEE
-#        
-#        if self.currentState == 'FLY':
-#            self.currentAnimation = self.flySpriteSheet.getSprites(flipped = self.movingRight)
-#
-#        elif self.currentState == 'ATTACK':
-#            self.animationSpeed = ANIMSPEED_BEE_ATTACK
-#            self.currentAnimation = self.attackSpriteSheet.getSprites(flipped=self.movingRight)
-     
-    def selectAnimation(self):
-
-        if self.currentState == 'FLY':
-            self.animationSpeed = ANIMSPEED_BEE
-            self.currentAnimation = self.flyRight if self.movingRight else self.flyLeft
-
+        # Select a rect size depending on the current animation
+        # (xPos, yPos) = bottom-center position of the sprite
+        if self.currentState == 'IDLE':
+            self.rect = pygame.Rect(self.xPos - 22, self.yPos - 52, 44, 52)
+        elif self.currentState == 'RUN':
+            self.rect = pygame.Rect(self.xPos - 20, self.yPos - 48, 40, 48)
         elif self.currentState == 'ATTACK':
-            self.animationSpeed = ANIMSPEED_BEE_ATTACK
-            self.currentAnimation = self.attackRight if self.movingRight else self.attackLeft
+            self.rect = pygame.Rect(self.xPos - 44, self.yPos - 64, 88, 64)
+
+        # Play animation until end of current animation is reached
+        self.animationIndex += self.animationSpeed
+        if self.animationIndex >= len(self.currentAnimation):
+            self.animationIndex = 0
+            self.currentState = 'IDLE'
+
+        self.moveHorizontal(level)
+
+
+    def draw(self, displaySurface):
+        displaySurface.blit(self.image, self.rect)
+
+
+    def selectAnimation(self):
+        self.animationSpeed = ANIMSPEED_HERO_DEFAULT
+        if self.currentState == 'IDLE':
+            self.animationSpeed = ANIMSPEED_HERO_IDLE
+
+        spriteSheet = self.spriteSheets[self.currentState]
+        self.currentAnimation = spriteSheet.getSprites(flipped = not self.facingRight)
+
+
+    def moveHorizontal(self, level):
+        self.rect.centerx += self.xDir * self.speed
+
+        # Do not walk outside level
+        if self.rect.left < 0:
+            self.rect.left = 0
+        elif self.rect.right > SCREEN_WIDTH:
+            self.rect.right = SCREEN_WIDTH
+
+        self.xPos = self.rect.centerx
+
 
 
