@@ -7,26 +7,27 @@ from ClassHero import Hero
 class Level():
     def __init__(self, displaySurface):
 
-        Instatiate/creates my classes
+        #Instatiate/creates my classes
  
         self.background = Background()
+
+        self.hero = pygame.sprite.GroupSingle()
+        self.bees = pygame.sprite.Group()
         
-        self.hero = Hero((400,400), faceRight = True)
-        self.bee1 = Bee((200,200), moveRight = True)
-        self.bee2 = Bee((300,300), moveRight = False)
+        self.hero.add(Hero((400,400), faceRight = True))
+        self.bees.add(Bee((200,200), moveRight = True))
+        self.bees.add(Bee((300,380), moveRight = False))
         
         self.displaySurface = displaySurface
 
     def update(self):#This Method should handle game logic
         self.hero.update(self)
-        self.bee1.update(self)
-        self.bee2.update(self)
+        self.bees.update(self)
 
     def draw(self):#This should draw the things onto the screen
         self.background.draw(self.displaySurface)
         self.hero.draw(self.displaySurface)
-        self.bee1.draw(self.displaySurface)
-        self.bee2.draw(self.displaySurface)
+        self.bees.draw(self.displaySurface)
         
     def run(self):
         self.update()
