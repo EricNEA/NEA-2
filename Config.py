@@ -1,14 +1,18 @@
 import pygame
 import os
 
-SPRITESHEET_PATH = "pygame-assets\\img"
+SPRITESHEET_PATH = "pygame-assets//img//Assets//SpriteSheets//"
+
+FPS = 60
+
+GRAVITY = 0.6
 
 SCREEN_WIDTH, SCREEN_HEIGHT = 960,540
-TILE_SIZE = 16
+SPEED_HERO = 4
 
 ANIMSPEED_HERO_DEFAULT = 0.25
 ANIMSPEED_HERO_IDLE = 0.1
 
-
+ANIMSPEED_BEE_ATTACK = 0.5
 ANIMSPEED_BEE = 0.2
 SPEED_BEE = 2
