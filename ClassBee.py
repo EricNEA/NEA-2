@@ -32,7 +32,16 @@ attackSprites = [
     (676, 0, 92, 80)
 ]
 
-
+deathSprites = [
+    (0,0,64, 56),
+    (80,0,64, 56),
+    (160,0,64, 56),
+    (240,0,64, 56),
+    (320,0,64, 56),
+    (400,0,64, 56),
+    (480,0,64, 56),
+    (560,0,64, 56),
+]
 class Hero(pygame.sprite.Sprite):
 
     def __init__(self, position, faceRight):
@@ -42,11 +51,14 @@ class Hero(pygame.sprite.Sprite):
         idleSpriteSheet = SpriteSheet(SPRITESHEET_PATH + "Character//Idle//Idle-Sheet.png", idleSprites)
         runSpriteSheet = SpriteSheet(SPRITESHEET_PATH + "Character//Run//Run-Sheet.png", runSprites)
         attackSpriteSheet = SpriteSheet(SPRITESHEET_PATH + "Character//Attack-01//Attack-01-Sheet.png", attackSprites)
-
+        deathSpriteSheet = SpriteSheet(SPRITESHEET_PATH + "Character//Dead//Dead-Sheet.png", deathSprites)
+            
+        
         self.spriteSheets = {
             'IDLE'   : idleSpriteSheet,
             'RUN'    : runSpriteSheet,
-            'ATTACK' : attackSpriteSheet
+            'ATTACK' : attackSpriteSheet,
+            'DIE'    : deathSpriteSheet
         }
 
         self.animationIndex = 0
@@ -58,12 +70,22 @@ class Hero(pygame.sprite.Sprite):
         self.yPos = position[1]
 
 
+    def selectAnimation(self):
+        self.animationSpeed = ANIMSPEED_HERO_DEFAULT
+        if self.currentState == 'IDLE':
+            self.animationSpeed = ANIMSPEED_HERO_IDLE
+
+        spriteSheet = self.spriteSheets[self.currentState]
+        self.currentAnimation = spriteSheet.getSprites(flipped = not self.facingRight)
+
+
+
     def update(self, level):
         self.previousState = self.currentState
         self.xDir = 0
 
         # get key status
-        if self.currentState != 'ATTACK':
+        if self.currentState != 'ATTACK' and self.currentState != 'DIE':
             keys = pygame.key.get_pressed()
             if keys[pygame.K_SPACE]:
                 self.currentState = 'ATTACK'
@@ -96,27 +118,26 @@ class Hero(pygame.sprite.Sprite):
             self.rect = pygame.Rect(self.xPos - 20, self.yPos - 48, 40, 48)
         elif self.currentState == 'ATTACK':
             self.rect = pygame.Rect(self.xPos - 44, self.yPos - 64, 88, 64)
-
+        elif self.currentState == 'DIE':
+            self.rect = pygame.Rect(self.xPos -32, self.yPos -48, 64, 48)
+        
         # Play animation until end of current animation is reached
         self.animationIndex += self.animationSpeed
         if self.animationIndex >= len(self.currentAnimation):
-            self.animationIndex = 0
-            self.currentState = 'IDLE'
+            if self.currentState == 'DIE':
+                self.animationIndex = len(self.currentAnimation) - 1
+            else:
+                self.animationIndex = 0
+                self.currentState = 'IDLE'
+            
 
         self.moveHorizontal(level)
+
+        self.checkEnemyCollisions(level.bees)
 
 
     def draw(self, displaySurface):
         displaySurface.blit(self.image, self.rect)
-
-
-    def selectAnimation(self):
-        self.animationSpeed = ANIMSPEED_HERO_DEFAULT
-        if self.currentState == 'IDLE':
-            self.animationSpeed = ANIMSPEED_HERO_IDLE
-
-        spriteSheet = self.spriteSheets[self.currentState]
-        self.currentAnimation = spriteSheet.getSprites(flipped = not self.facingRight)
 
 
     def moveHorizontal(self, level):
@@ -130,5 +151,28 @@ class Hero(pygame.sprite.Sprite):
 
         self.xPos = self.rect.centerx
 
+    def die(self):
+        if self.currentState != 'DIE':
+            self.currentState = 'DIE'
+            self.animationIndex = 0
 
+    def checkEnemyCollisions(self, enemies):
+        collidedSprites = pygame.sprite.spritecollide(self, enemies, False) #self is Hero, enemies are the bees etc, False do no immediately destroy the sprite after colliison
+        for enemy in collidedSprites:
+            if self.currentState == 'ATTACK':
+                if self.facingRight == True:
+                    if enemy.rect.left < self.rect.right - 30:
+                        enemy.die()
+                else:
+                    if enemy.rect.right > self.rect.left + 30:
+                        enemy.die()
+            else:
+                if enemy.currentState != 'DYING':
+                    if self.rect.left < enemy.rect.left:
+                        if self.rect.right > enemy.rect.left + 16:
+                            self.die()
+                elif self.rect.right > enemy.rect.right:
+                    if self.rect.left < enemy.rect.right - 16:
+                        self.die()
+        
 
