@@ -117,12 +117,9 @@ class Level():
 
      
                         
-    #def draw_world(self,screen):
-        #for img, (x, y) in self.obstacle_list:
-        # Create a new position with scrolling applied
-            #print(self.map_scroll)
-            #screen.blit(img, (x + screen_scroll,y))
-            #screen.blit(img, (x,y))
+    def draw_world(self,screen):
+        for img, (x, y) in self.obstacle_list:
+            screen.blit(img, (x,y))
 
     def draw_world(self,screen):
         for tile in self.obstacle_list:
@@ -136,15 +133,9 @@ class Level():
                     
 
     def update(self):#This Method should handle game logic
-        #self.hero.update(self, self.obstacle_list)
+        self.hero.update(self, self.obstacle_list)
         self.screen_scroll = self.hero.sprite.update(self, self.obstacle_list)
         self.delta_scroll = self.screen_scroll
-        #if self.screen_scroll == 0:
-        #    self.delta_scroll = 0
-        #else:
-        #    self.delta_scroll += self.screen_scroll
-        #print(screen_scroll)
-        #self.screen_scroll = int(scroll_delta or 0)
         self.bees.update(self)
         self.decoration.update(self)
         self.water.update(self)
@@ -161,6 +152,5 @@ class Level():
 
         
     def run(self):
-        print(self.screen_scroll)
         self.update()
         self.draw()
