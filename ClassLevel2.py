@@ -105,21 +105,20 @@ class Level():
                         self.decoration.add(decoration)
                     elif tile == 15:#create player
                         self.hero.add(Hero((x * self.TILE_SIZE, y * self.TILE_SIZE), faceRight = True))
-                        pass
                     elif tile == 16:#exit
                         exits = Exit(img, x * self.TILE_SIZE , y * self.TILE_SIZE )
                         self.exit.add(exits)
                     elif tile == 17:
                         self.bees.add(Bee((x * self.TILE_SIZE, y * self.TILE_SIZE), moveRight = False))
-                        pass
                     elif tile == 18:
                         self.bees.add(Bee((x * self.TILE_SIZE, y * self.TILE_SIZE), moveRight = True))
 
      
                         
     def draw_world(self,screen):
-        for img, (x, y) in self.obstacle_list:
-            screen.blit(img, (x,y))
+        for tile in self.obstacle_list:
+            screen.blit(tile[0],tile[1])
+            
 
     def draw_world(self,screen):
         for tile in self.obstacle_list:
